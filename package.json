@@ -1,0 +1,74 @@
+{
+  "name": "chatbot-widget-windows",
+  "version": "1.0.0",
+  "description": "Widget de bureau Windows pour le chatbot Laravel HR Télécoms",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win --x64",
+    "build-portable": "electron-builder --win --x64 --config.win.target=portable",
+    "build-installer": "electron-builder --win --x64 --config.win.target=nsis"
+  },
+  "keywords": [
+    "chatbot",
+    "electron",
+    "widget",
+    "windows",
+    "HR Telecoms"
+  ],
+  "author": "Atelier Normand Du Web",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "axios": "^1.6.2"
+  },
+  "build": {
+    "appId": "com.hrtelecoms.chatbot",
+    "productName": "Chatbot HR Telecoms",
+    "copyright": "Copyright © 2025 HR Télécoms",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "publisherName": "HR Télécoms"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.png",
+      "uninstallerIcon": "assets/icon.png",
+      "installerHeaderIcon": "assets/icon.png",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Chatbot HR Télécoms",
+      "include": "installer.nsh",
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "language": "1036",
+      "installerLanguages": ["fr_FR"],
+      "license": "LICENSE.txt"
+    },
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "**/*",
+      "!**/*.md",
+      "!node_modules/**/*",
+      "node_modules/electron/**/*"
+    ],
+    "compression": "normal"
+  }
+}

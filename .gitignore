@@ -1,0 +1,28 @@
+# Electron
+dist/
+out/
+build/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config locale (ne pas commiter les tokens)
+config.json
+
+# Logs
+*.log
+logs/
