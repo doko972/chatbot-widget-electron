@@ -1,6 +1,6 @@
 // Configuration et état
 let config = {
-    apiUrl: localStorage.getItem('apiUrl') || 'http://localhost:8000'
+    apiUrl: localStorage.getItem('apiUrl') || 'https://chatbot.ateliernormandduweb.fr'
 };
 
 let isPinned = false;
