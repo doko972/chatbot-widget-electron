@@ -5,6 +5,9 @@ let config = {
 
 let isMinimized = true;
 
+// 🧠 AJOUT : Historique de conversation
+let conversationHistory = [];
+
 // Éléments DOM
 const elements = {
     floatingButton: document.getElementById('floatingButton'),
@@ -19,6 +22,7 @@ const elements = {
     messageInput: document.getElementById('messageInput'),
     sendButton: document.getElementById('sendButton'),
     typingIndicator: document.getElementById('typingIndicator'),
+    clearHistoryBtn: document.getElementById('clearHistoryBtn'),
     minimizeBtn: document.getElementById('minimizeBtn'),
     closeBtn: document.getElementById('closeBtn')
 };
@@ -48,7 +52,11 @@ function setupEventListeners() {
     });
 
     elements.closeBtn.addEventListener('click', () => {
-        window.electronAPI.closeWindow();
+        if (window.electronAPI && window.electronAPI.closeWindow) {
+            window.electronAPI.closeWindow();
+        } else {
+            window.close();
+        }
     });
 
     // Settings
@@ -79,12 +87,31 @@ function setupEventListeners() {
         e.stopPropagation();
         elements.settingsPanel.classList.add('active');
     });
+
+    if (elements.clearHistoryBtn) {
+        elements.clearHistoryBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (confirm('...')) {
+                try {
+                    clearHistory();
+                    elements.messagesContainer.innerHTML = '';
+                    addMessage('Bonjour, comment puis-je vous aider ?', 'bot');
+                    console.log('✅ OK');
+                } catch (error) {
+                    console.error('❌ Erreur:', error);
+                    addMessage('⚠️ Erreur...', 'bot');
+                }
+            }
+        });
+    }
 }
 
 // Toggle entre mode réduit et déployé
 function toggleChat(minimize = false) {
     isMinimized = minimize;
-    
+
     if (minimize) {
         // Réduire vers le bouton
         elements.chatContainer.classList.add('hidden');
@@ -109,7 +136,7 @@ function saveSettings() {
     localStorage.setItem('apiUrl', config.apiUrl);
 
     showConnectionStatus('✅ Paramètres sauvegardés !', 'success');
-    
+
     setTimeout(() => {
         elements.settingsPanel.classList.remove('active');
     }, 1500);
@@ -174,9 +201,9 @@ function showConnectionStatus(message, type) {
 // Envoyer un message
 async function sendMessage() {
     const message = elements.messageInput.value.trim();
-    
+
     if (!message) return;
-    
+
     if (!config.apiUrl) {
         addMessage('Veuillez configurer l\'URL de l\'API dans les paramètres.', 'bot');
         elements.settingsPanel.classList.add('active');
@@ -187,13 +214,20 @@ async function sendMessage() {
     addMessage(message, 'user');
     elements.messageInput.value = '';
     elements.messageInput.style.height = 'auto';
-    
+
+    // 🧠 AJOUT : Ajouter le message à l'historique
+    conversationHistory.push({
+        role: 'user',
+        content: message
+    });
+
     // Désactiver l'envoi pendant le traitement
     elements.sendButton.disabled = true;
     elements.messageInput.disabled = true;
     showTypingIndicator(true);
 
     try {
+        // 🧠 MODIFICATION : Envoyer l'historique avec la question
         const response = await fetch(`${config.apiUrl}/api/chatbot/message`, {
             method: 'POST',
             headers: {
@@ -201,7 +235,8 @@ async function sendMessage() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                question: message
+                question: message,
+                conversation_history: conversationHistory  // 🧠 AJOUT : Envoyer l'historique
             })
         });
 
@@ -211,11 +246,22 @@ async function sendMessage() {
         }
 
         const data = await response.json();
-        
+
         // Afficher la réponse du bot
         const botResponse = data.response || data.answer || data.message;
         addMessage(botResponse, 'bot');
-        
+
+        // 🧠 AJOUT : Ajouter la réponse à l'historique
+        conversationHistory.push({
+            role: 'assistant',
+            content: botResponse
+        });
+
+        // 🧠 AJOUT : Limiter l'historique à 80 messages (40 échanges)
+        if (conversationHistory.length > 160) {
+            conversationHistory = conversationHistory.slice(-160);
+        }
+
     } catch (error) {
         console.error('Erreur:', error);
         addMessage('❌ ' + (error.message || 'Erreur de connexion. Vérifiez vos paramètres.'), 'bot');
@@ -231,31 +277,31 @@ async function sendMessage() {
 function addMessage(text, type) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}-message`;
-    
+
     if (type === 'bot') {
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'message-avatar';
         avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
         messageDiv.appendChild(avatarDiv);
     }
-    
+
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
-    
+
     if (type === 'bot') {
         const header = document.createElement('div');
         header.className = 'message-header';
         header.textContent = 'Jarvis';
         contentDiv.appendChild(header);
     }
-    
+
     const p = document.createElement('p');
     p.textContent = text;
-    
+
     contentDiv.appendChild(p);
     messageDiv.appendChild(contentDiv);
     elements.messagesContainer.appendChild(messageDiv);
-    
+
     // Scroll vers le bas
     elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
 }
@@ -270,6 +316,25 @@ function showTypingIndicator(show) {
     }
 }
 
+// 🧠 AJOUT : Fonction pour effacer l'historique (optionnel - pour debug)
+function clearHistory() {
+    conversationHistory = [];
+    console.log('🗑️ Historique effacé');
+}
+
+// 🧠 AJOUT : Fonction pour voir l'historique (optionnel - pour debug)
+function showHistory() {
+    console.log('📜 Historique de conversation:', conversationHistory);
+    return conversationHistory;
+}
+
+// 🧠 AJOUT : Exposer les fonctions de debug (optionnel)
+window.jarvisDebug = {
+    clearHistory: clearHistory,
+    showHistory: showHistory,
+    getHistoryLength: () => conversationHistory.length
+};
+
 // Gestion des erreurs globales
 window.addEventListener('error', (event) => {
     console.error('Erreur globale:', event.error);
@@ -278,3 +343,6 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
     console.error('Promise non gérée:', event.reason);
 });
+
+console.log('🤖 Jarvis chargé avec mémoire conversationnelle !');
+console.log('💡 Debug: Tapez window.jarvisDebug.showHistory() dans la console');

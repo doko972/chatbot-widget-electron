@@ -1,7 +1,7 @@
 {
   "name": "chatbot-widget-windows",
   "version": "1.0.0",
-  "description": "Widget de bureau Windows pour le chatbot Laravel HR Télécoms",
+  "description": "Widget de bureau Windows pour le chatbot HRTélécoms",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -58,7 +58,7 @@
       "installerHeaderIcon": "assets/icon.png",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Chatbot HR Télécoms",
+      "shortcutName": "Chatbot HRTélécoms",
       "include": "installer.nsh",
       "perMachine": false,
       "deleteAppDataOnUninstall": false,
