@@ -1,0 +1,367 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: transparent;
+    overflow: hidden;
+}
+
+.chatbot-widget {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+/* Barre de titre */
+.title-bar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+    -webkit-app-region: drag;
+    user-select: none;
+}
+
+.title-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.title-text {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.title-bar-right {
+    display: flex;
+    gap: 4px;
+    -webkit-app-region: no-drag;
+}
+
+.title-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.title-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.title-button.close:hover {
+    background: #ef4444;
+}
+
+/* Panneau de configuration */
+.settings-panel {
+    display: none;
+    padding: 20px;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.settings-panel.active {
+    display: block;
+}
+
+.settings-panel h3 {
+    margin-bottom: 16px;
+    color: #111827;
+    font-size: 16px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.btn-primary, .btn-secondary {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-right: 8px;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+}
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+}
+
+.connection-status {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    display: none;
+}
+
+.connection-status.success {
+    background: #d1fae5;
+    color: #065f46;
+    display: block;
+}
+
+.connection-status.error {
+    background: #fee2e2;
+    color: #991b1b;
+    display: block;
+}
+
+/* Zone de chat */
+.chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    scroll-behavior: smooth;
+}
+
+.messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.message {
+    margin-bottom: 16px;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message-content {
+    display: inline-block;
+    max-width: 80%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.user-message {
+    text-align: right;
+}
+
+.user-message .message-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.bot-message .message-content {
+    background: #f3f4f6;
+    color: #111827;
+    border-bottom-left-radius: 4px;
+}
+
+/* Zone de saisie */
+.input-area {
+    display: flex;
+    gap: 8px;
+    padding: 16px;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+}
+
+#messageInput {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 24px;
+    resize: none;
+    font-family: inherit;
+    font-size: 14px;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+#messageInput:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+#messageInput::-webkit-scrollbar {
+    width: 4px;
+}
+
+#messageInput::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 2px;
+}
+
+.send-button {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+
+.send-button:hover {
+    transform: scale(1.05);
+}
+
+.send-button:active {
+    transform: scale(0.95);
+}
+
+.send-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Indicateur de frappe */
+.typing-indicator {
+    display: none;
+    padding: 16px 20px;
+    gap: 4px;
+}
+
+.typing-indicator.active {
+    display: flex;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: #9ca3af;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-8px);
+    }
+}
+
+/* États */
+.hidden {
+    display: none !important;
+}

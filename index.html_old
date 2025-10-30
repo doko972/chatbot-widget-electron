@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Widget</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="chatbot-widget">
+        <!-- Barre de titre personnalisée -->
+        <div class="title-bar">
+            <div class="title-bar-left">
+                <div class="status-indicator"></div>
+                <span class="title-text">Chatbot HR Télécoms</span>
+            </div>
+            <div class="title-bar-right">
+                <button class="title-button" id="pinBtn" title="Épingler">📌</button>
+                <button class="title-button" id="settingsBtn" title="Paramètres">⚙️</button>
+                <button class="title-button" id="minimizeBtn" title="Réduire">−</button>
+                <button class="title-button close" id="closeBtn" title="Fermer">×</button>
+            </div>
+        </div>
+
+        <!-- Panneau de configuration -->
+        <div class="settings-panel" id="settingsPanel">
+            <h3>Configuration</h3>
+            <div class="form-group">
+                <label for="apiUrl">URL de l'API Laravel:</label>
+                <input type="text" id="apiUrl" placeholder="http://localhost:8000" value="http://localhost:8000">
+                <small>L'URL de votre serveur Laravel</small>
+            </div>
+            <button class="btn-primary" id="saveSettings">Enregistrer</button>
+            <button class="btn-secondary" id="testConnection">Tester la connexion</button>
+            <div id="connectionStatus" class="connection-status"></div>
+        </div>
+
+        <!-- Zone de chat -->
+        <div class="chat-container" id="chatContainer">
+            <div class="messages" id="messagesContainer">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>👋 Bonjour ! Je suis l'assistant HR Télécoms. Comment puis-je vous aider ?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone de saisie -->
+            <div class="input-area">
+                <textarea 
+                    id="messageInput" 
+                    placeholder="Écrivez votre message..." 
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loader -->
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>

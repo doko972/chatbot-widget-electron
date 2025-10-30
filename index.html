@@ -3,71 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot Widget</title>
+    <title>Jarvis - HR Télécoms</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="chatbot-widget">
-        <!-- Barre de titre personnalisée -->
-        <div class="title-bar">
-            <div class="title-bar-left">
-                <div class="status-indicator"></div>
-                <span class="title-text">Chatbot HR Télécoms</span>
-            </div>
-            <div class="title-bar-right">
-                <button class="title-button" id="pinBtn" title="Épingler">📌</button>
-                <button class="title-button" id="settingsBtn" title="Paramètres">⚙️</button>
-                <button class="title-button" id="minimizeBtn" title="Réduire">−</button>
-                <button class="title-button close" id="closeBtn" title="Fermer">×</button>
-            </div>
-        </div>
+    <!-- Mode réduit : Bouton flottant avec robot SVG -->
+    <div id="floatingButton" class="floating-button">
+        <svg class="robot-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Antenne -->
+            <line x1="32" y1="8" x2="32" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="32" cy="6" r="2" fill="white"/>
+            
+            <!-- Tête -->
+            <rect x="20" y="14" width="24" height="20" rx="4" fill="white"/>
+            
+            <!-- Yeux -->
+            <circle cx="27" cy="22" r="2.5" fill="#3C5A99"/>
+            <circle cx="37" cy="22" r="2.5" fill="#3C5A99"/>
+            
+            <!-- Sourire -->
+            <path d="M 26 28 Q 32 31 38 28" stroke="#3C5A99" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            
+            <!-- Corps -->
+            <rect x="22" y="34" width="20" height="18" rx="3" fill="white"/>
+            
+            <!-- Bras gauche -->
+            <rect x="14" y="38" width="8" height="3" rx="1.5" fill="white"/>
+            <circle cx="14" cy="39.5" r="2" fill="white"/>
+            
+            <!-- Bras droit -->
+            <rect x="42" y="38" width="8" height="3" rx="1.5" fill="white"/>
+            <circle cx="50" cy="39.5" r="2" fill="white"/>
+            
+            <!-- Jambes -->
+            <rect x="26" y="52" width="4" height="8" rx="2" fill="white"/>
+            <rect x="34" y="52" width="4" height="8" rx="2" fill="white"/>
+            
+            <!-- Détails du corps -->
+            <circle cx="32" cy="42" r="1.5" fill="#3C5A99"/>
+            <line x1="28" y1="44" x2="36" y2="44" stroke="#3C5A99" stroke-width="1"/>
+        </svg>
+        <div class="pulse-ring"></div>
+    </div>
 
-        <!-- Panneau de configuration -->
-        <div class="settings-panel" id="settingsPanel">
-            <h3>Configuration</h3>
-            <div class="form-group">
-                <label for="apiUrl">URL de l'API Laravel:</label>
-                <input type="text" id="apiUrl" placeholder="http://localhost:8000" value="http://localhost:8000">
-                <small>L'URL de votre serveur Laravel</small>
-            </div>
-            <button class="btn-primary" id="saveSettings">Enregistrer</button>
-            <button class="btn-secondary" id="testConnection">Tester la connexion</button>
-            <div id="connectionStatus" class="connection-status"></div>
-        </div>
-
-        <!-- Zone de chat -->
-        <div class="chat-container" id="chatContainer">
-            <div class="messages" id="messagesContainer">
-                <div class="message bot-message">
-                    <div class="message-content">
-                        <p>👋 Bonjour ! Je suis l'assistant HR Télécoms. Comment puis-je vous aider ?</p>
-                    </div>
+    <!-- Mode déployé : Chatbot complet -->
+    <div id="chatContainer" class="chat-container hidden">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="header-left">
+                <div class="header-icon-container">
+                    <svg class="header-robot-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Antenne -->
+                        <line x1="32" y1="8" x2="32" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="32" cy="6" r="2" fill="white"/>
+                        
+                        <!-- Tête -->
+                        <rect x="20" y="14" width="24" height="20" rx="4" fill="white"/>
+                        
+                        <!-- Yeux -->
+                        <circle cx="27" cy="22" r="2.5" fill="#3C5A99"/>
+                        <circle cx="37" cy="22" r="2.5" fill="#3C5A99"/>
+                        
+                        <!-- Sourire -->
+                        <path d="M 26 28 Q 32 31 38 28" stroke="#3C5A99" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                        
+                        <!-- Corps -->
+                        <rect x="22" y="34" width="20" height="18" rx="3" fill="white"/>
+                        
+                        <!-- Bras gauche -->
+                        <rect x="14" y="38" width="8" height="3" rx="1.5" fill="white"/>
+                        <circle cx="14" cy="39.5" r="2" fill="white"/>
+                        
+                        <!-- Bras droit -->
+                        <rect x="42" y="38" width="8" height="3" rx="1.5" fill="white"/>
+                        <circle cx="50" cy="39.5" r="2" fill="white"/>
+                        
+                        <!-- Jambes -->
+                        <rect x="26" y="52" width="4" height="8" rx="2" fill="white"/>
+                        <rect x="34" y="52" width="4" height="8" rx="2" fill="white"/>
+                        
+                        <!-- Détails du corps -->
+                        <circle cx="32" cy="42" r="1.5" fill="#3C5A99"/>
+                        <line x1="28" y1="44" x2="36" y2="44" stroke="#3C5A99" stroke-width="1"/>
+                    </svg>
+                </div>
+                <div class="header-info">
+                    <h3>Jarvis</h3>
+                    <span class="status-text">
+                        <span class="status-dot"></span>
+                        En ligne
+                    </span>
                 </div>
             </div>
-
-            <!-- Zone de saisie -->
-            <div class="input-area">
-                <textarea 
-                    id="messageInput" 
-                    placeholder="Écrivez votre message..." 
-                    rows="1"
-                ></textarea>
-                <button class="send-button" id="sendButton">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <div class="header-actions">
+                <button id="minimizeBtn" class="icon-btn" title="Réduire">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+                <button id="closeBtn" class="icon-btn" title="Fermer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </button>
             </div>
         </div>
 
-        <!-- Loader -->
-        <div class="typing-indicator" id="typingIndicator">
-            <span></span>
-            <span></span>
-            <span></span>
+        <!-- Messages -->
+        <div id="messagesContainer" class="messages-container">
+            <div class="message bot-message welcome-message">
+                <div class="message-avatar-svg">
+                    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="32" y1="8" x2="32" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="32" cy="6" r="2" fill="white"/>
+                        <rect x="20" y="14" width="24" height="20" rx="4" fill="white"/>
+                        <circle cx="27" cy="22" r="2.5" fill="#3C5A99"/>
+                        <circle cx="37" cy="22" r="2.5" fill="#3C5A99"/>
+                        <path d="M 26 28 Q 32 31 38 28" stroke="#3C5A99" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                        <rect x="22" y="34" width="20" height="18" rx="3" fill="white"/>
+                        <rect x="14" y="38" width="8" height="3" rx="1.5" fill="white"/>
+                        <circle cx="14" cy="39.5" r="2" fill="white"/>
+                        <rect x="42" y="38" width="8" height="3" rx="1.5" fill="white"/>
+                        <circle cx="50" cy="39.5" r="2" fill="white"/>
+                        <rect x="26" y="52" width="4" height="8" rx="2" fill="white"/>
+                        <rect x="34" y="52" width="4" height="8" rx="2" fill="white"/>
+                        <circle cx="32" cy="42" r="1.5" fill="#3C5A99"/>
+                        <line x1="28" y1="44" x2="36" y2="44" stroke="#3C5A99" stroke-width="1"/>
+                    </svg>
+                </div>
+                <div class="message-content">
+                    <div class="message-header">Jarvis</div>
+                    <p>👋 Bonjour ! Je suis Jarvis, votre assistant interne HR Télécoms. Comment puis-je vous aider ?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div id="typingIndicator" class="typing-indicator">
+            <div class="message-avatar-svg">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="32" y1="8" x2="32" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="32" cy="6" r="2" fill="white"/>
+                    <rect x="20" y="14" width="24" height="20" rx="4" fill="white"/>
+                    <circle cx="27" cy="22" r="2.5" fill="#3C5A99"/>
+                    <circle cx="37" cy="22" r="2.5" fill="#3C5A99"/>
+                    <path d="M 26 28 Q 32 31 38 28" stroke="#3C5A99" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                    <rect x="22" y="34" width="20" height="18" rx="3" fill="white"/>
+                    <rect x="14" y="38" width="8" height="3" rx="1.5" fill="white"/>
+                    <circle cx="14" cy="39.5" r="2" fill="white"/>
+                    <rect x="42" y="38" width="8" height="3" rx="1.5" fill="white"/>
+                    <circle cx="50" cy="39.5" r="2" fill="white"/>
+                    <rect x="26" y="52" width="4" height="8" rx="2" fill="white"/>
+                    <rect x="34" y="52" width="4" height="8" rx="2" fill="white"/>
+                    <circle cx="32" cy="42" r="1.5" fill="#3C5A99"/>
+                    <line x1="28" y1="44" x2="36" y2="44" stroke="#3C5A99" stroke-width="1"/>
+                </svg>
+            </div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input-container">
+            <div class="input-wrapper">
+                <textarea 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="Écrivez votre message..."
+                    rows="1"
+                ></textarea>
+                <button id="sendButton" class="send-button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
 
+    <!-- Settings Panel -->
+    <div id="settingsPanel" class="settings-panel">
+        <div class="settings-header">
+            <h3>⚙️ Paramètres</h3>
+            <button id="closeSettings" class="close-settings">✕</button>
+        </div>
+        <div class="settings-content">
+            <div class="form-group">
+                <label for="apiUrl">URL de l'API</label>
+                <input 
+                    type="text" 
+                    id="apiUrl" 
+                    class="form-input" 
+                    placeholder="https://chatbot.ateliernormandduweb.fr"
+                >
+            </div>
+            <div class="settings-actions">
+                <button id="testConnection" class="btn-secondary">Tester</button>
+                <button id="saveSettings" class="btn-primary">Enregistrer</button>
+            </div>
+            <div id="connectionStatus" class="connection-status"></div>
+        </div>
+    </div>
+
+    <script src="preload.js"></script>
     <script src="renderer.js"></script>
 </body>
 </html>

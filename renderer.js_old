@@ -3,35 +3,12 @@ let config = {
     apiUrl: localStorage.getItem('apiUrl') || 'https://chatbot.ateliernormandduweb.fr'
 };
 
-let isMinimized = true;
-
-// SVG du robot (pour réutilisation)
-const robotSVG = `
-    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <line x1="32" y1="8" x2="32" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="32" cy="6" r="2" fill="white"/>
-        <rect x="20" y="14" width="24" height="20" rx="4" fill="white"/>
-        <circle cx="27" cy="22" r="2.5" fill="#3C5A99"/>
-        <circle cx="37" cy="22" r="2.5" fill="#3C5A99"/>
-        <path d="M 26 28 Q 32 31 38 28" stroke="#3C5A99" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-        <rect x="22" y="34" width="20" height="18" rx="3" fill="white"/>
-        <rect x="14" y="38" width="8" height="3" rx="1.5" fill="white"/>
-        <circle cx="14" cy="39.5" r="2" fill="white"/>
-        <rect x="42" y="38" width="8" height="3" rx="1.5" fill="white"/>
-        <circle cx="50" cy="39.5" r="2" fill="white"/>
-        <rect x="26" y="52" width="4" height="8" rx="2" fill="white"/>
-        <rect x="34" y="52" width="4" height="8" rx="2" fill="white"/>
-        <circle cx="32" cy="42" r="1.5" fill="#3C5A99"/>
-        <line x1="28" y1="44" x2="36" y2="44" stroke="#3C5A99" stroke-width="1"/>
-    </svg>
-`;
+let isPinned = false;
 
 // Éléments DOM
 const elements = {
-    floatingButton: document.getElementById('floatingButton'),
-    chatContainer: document.getElementById('chatContainer'),
     settingsPanel: document.getElementById('settingsPanel'),
-    closeSettings: document.getElementById('closeSettings'),
+    settingsBtn: document.getElementById('settingsBtn'),
     apiUrlInput: document.getElementById('apiUrl'),
     saveSettingsBtn: document.getElementById('saveSettings'),
     testConnectionBtn: document.getElementById('testConnection'),
@@ -41,7 +18,9 @@ const elements = {
     sendButton: document.getElementById('sendButton'),
     typingIndicator: document.getElementById('typingIndicator'),
     minimizeBtn: document.getElementById('minimizeBtn'),
-    closeBtn: document.getElementById('closeBtn')
+    closeBtn: document.getElementById('closeBtn'),
+    pinBtn: document.getElementById('pinBtn'),
+    statusIndicator: document.querySelector('.status-indicator')
 };
 
 // Initialisation
@@ -58,25 +37,22 @@ function loadSettings() {
 
 // Configuration des événements
 function setupEventListeners() {
-    // Toggle bouton flottant / chat
-    elements.floatingButton.addEventListener('click', () => {
-        toggleChat(false);
-    });
-
-    // Boutons header
+    // Boutons de la barre de titre
     elements.minimizeBtn.addEventListener('click', () => {
-        toggleChat(true);
+        window.electronAPI.minimizeWindow();
     });
 
     elements.closeBtn.addEventListener('click', () => {
         window.electronAPI.closeWindow();
     });
 
-    // Settings
-    elements.closeSettings.addEventListener('click', () => {
-        elements.settingsPanel.classList.remove('active');
+    elements.pinBtn.addEventListener('click', togglePin);
+
+    elements.settingsBtn.addEventListener('click', () => {
+        elements.settingsPanel.classList.toggle('active');
     });
 
+    // Paramètres
     elements.saveSettingsBtn.addEventListener('click', saveSettings);
     elements.testConnectionBtn.addEventListener('click', testConnection);
 
@@ -89,33 +65,19 @@ function setupEventListeners() {
         }
     });
 
-    // Auto-resize textarea
+    // Auto-resize du textarea
     elements.messageInput.addEventListener('input', () => {
         elements.messageInput.style.height = 'auto';
-        elements.messageInput.style.height = Math.min(elements.messageInput.scrollHeight, 120) + 'px';
-    });
-
-    // Double-clic sur le bouton = paramètres
-    elements.floatingButton.addEventListener('dblclick', (e) => {
-        e.stopPropagation();
-        elements.settingsPanel.classList.add('active');
+        elements.messageInput.style.height = elements.messageInput.scrollHeight + 'px';
     });
 }
 
-// Toggle entre mode réduit et déployé
-function toggleChat(minimize = false) {
-    isMinimized = minimize;
-    
-    if (minimize) {
-        // Réduire vers le bouton
-        elements.chatContainer.classList.add('hidden');
-        elements.floatingButton.style.display = 'flex';
-    } else {
-        // Déployer le chat
-        elements.floatingButton.style.display = 'none';
-        elements.chatContainer.classList.remove('hidden');
-        elements.messageInput.focus();
-    }
+// Épingler/Désépingler la fenêtre
+function togglePin() {
+    isPinned = !isPinned;
+    window.electronAPI.toggleAlwaysOnTop(isPinned);
+    elements.pinBtn.textContent = isPinned ? '📍' : '📌';
+    elements.pinBtn.title = isPinned ? 'Désépingler' : 'Épingler';
 }
 
 // Sauvegarder les paramètres
@@ -158,31 +120,27 @@ async function testConnection() {
         if (response.ok) {
             const data = await response.json();
             showConnectionStatus('✅ Connexion réussie !', 'success');
+            updateStatusIndicator(true);
         } else {
             throw new Error('Erreur de connexion');
         }
     } catch (error) {
         console.error('Erreur de connexion:', error);
         showConnectionStatus('❌ Échec de la connexion. Vérifiez l\'URL.', 'error');
+        updateStatusIndicator(false);
     } finally {
         elements.testConnectionBtn.disabled = false;
-        elements.testConnectionBtn.textContent = 'Tester';
+        elements.testConnectionBtn.textContent = 'Tester la connexion';
     }
 }
 
 // Vérifier la connexion au démarrage
 async function checkInitialConnection() {
     if (config.apiUrl) {
-        try {
-            const response = await fetch(`${config.apiUrl}/api/chatbot/test`);
-            if (!response.ok) {
-                elements.settingsPanel.classList.add('active');
-            }
-        } catch (error) {
-            elements.settingsPanel.classList.add('active');
-        }
+        await testConnection();
     } else {
         elements.settingsPanel.classList.add('active');
+        updateStatusIndicator(false);
     }
 }
 
@@ -190,6 +148,15 @@ async function checkInitialConnection() {
 function showConnectionStatus(message, type) {
     elements.connectionStatus.textContent = message;
     elements.connectionStatus.className = `connection-status ${type}`;
+    
+    setTimeout(() => {
+        elements.connectionStatus.style.display = 'none';
+    }, 5000);
+}
+
+// Mettre à jour l'indicateur de statut
+function updateStatusIndicator(isConnected) {
+    elements.statusIndicator.style.background = isConnected ? '#4ade80' : '#ef4444';
 }
 
 // Envoyer un message
@@ -228,7 +195,7 @@ async function sendMessage() {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error || `Erreur HTTP: ${response.status}`);
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
@@ -240,6 +207,7 @@ async function sendMessage() {
     } catch (error) {
         console.error('Erreur:', error);
         addMessage('❌ ' + (error.message || 'Erreur de connexion. Vérifiez vos paramètres.'), 'bot');
+        updateStatusIndicator(false);
     } finally {
         showTypingIndicator(false);
         elements.sendButton.disabled = false;
@@ -253,22 +221,8 @@ function addMessage(text, type) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}-message`;
     
-    if (type === 'bot') {
-        const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'message-avatar-svg';
-        avatarDiv.innerHTML = robotSVG;
-        messageDiv.appendChild(avatarDiv);
-    }
-    
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
-    
-    if (type === 'bot') {
-        const header = document.createElement('div');
-        header.className = 'message-header';
-        header.textContent = 'Jarvis';
-        contentDiv.appendChild(header);
-    }
     
     const p = document.createElement('p');
     p.textContent = text;
@@ -285,7 +239,6 @@ function addMessage(text, type) {
 function showTypingIndicator(show) {
     if (show) {
         elements.typingIndicator.classList.add('active');
-        elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
     } else {
         elements.typingIndicator.classList.remove('active');
     }

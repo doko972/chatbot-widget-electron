@@ -17,10 +17,11 @@ function createWindow() {
         x: width - WINDOW_WIDTH - 20,
         y: height - WINDOW_HEIGHT - 20,
         frame: false, // Sans bordures Windows
-        transparent: false,
+        transparent: true,
         resizable: true,
         alwaysOnTop: true, // Toujours visible
         skipTaskbar: false,
+        roundedCorners: true,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
