@@ -5,7 +5,7 @@ let mainWindow;
 let tray = null;
 
 // Configuration
-const WINDOW_WIDTH = 380;
+const WINDOW_WIDTH = 400;
 const WINDOW_HEIGHT = 600;
 
 function createWindow() {

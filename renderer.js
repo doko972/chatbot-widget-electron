@@ -5,27 +5,6 @@ let config = {
 
 let isMinimized = true;
 
-// SVG du robot (pour réutilisation)
-const robotSVG = `
-    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <line x1="32" y1="8" x2="32" y2="14" stroke="white" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="32" cy="6" r="2" fill="white"/>
-        <rect x="20" y="14" width="24" height="20" rx="4" fill="white"/>
-        <circle cx="27" cy="22" r="2.5" fill="#3C5A99"/>
-        <circle cx="37" cy="22" r="2.5" fill="#3C5A99"/>
-        <path d="M 26 28 Q 32 31 38 28" stroke="#3C5A99" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-        <rect x="22" y="34" width="20" height="18" rx="3" fill="white"/>
-        <rect x="14" y="38" width="8" height="3" rx="1.5" fill="white"/>
-        <circle cx="14" cy="39.5" r="2" fill="white"/>
-        <rect x="42" y="38" width="8" height="3" rx="1.5" fill="white"/>
-        <circle cx="50" cy="39.5" r="2" fill="white"/>
-        <rect x="26" y="52" width="4" height="8" rx="2" fill="white"/>
-        <rect x="34" y="52" width="4" height="8" rx="2" fill="white"/>
-        <circle cx="32" cy="42" r="1.5" fill="#3C5A99"/>
-        <line x1="28" y1="44" x2="36" y2="44" stroke="#3C5A99" stroke-width="1"/>
-    </svg>
-`;
-
 // Éléments DOM
 const elements = {
     floatingButton: document.getElementById('floatingButton'),
@@ -144,7 +123,7 @@ async function testConnection() {
     }
 
     elements.testConnectionBtn.disabled = true;
-    elements.testConnectionBtn.textContent = 'Test en cours...';
+    elements.testConnectionBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Test...';
 
     try {
         const response = await fetch(`${config.apiUrl}/api/chatbot/test`, {
@@ -166,7 +145,7 @@ async function testConnection() {
         showConnectionStatus('❌ Échec de la connexion. Vérifiez l\'URL.', 'error');
     } finally {
         elements.testConnectionBtn.disabled = false;
-        elements.testConnectionBtn.textContent = 'Tester';
+        elements.testConnectionBtn.innerHTML = '<i class="fas fa-plug"></i> Tester';
     }
 }
 
@@ -255,8 +234,8 @@ function addMessage(text, type) {
     
     if (type === 'bot') {
         const avatarDiv = document.createElement('div');
-        avatarDiv.className = 'message-avatar-svg';
-        avatarDiv.innerHTML = robotSVG;
+        avatarDiv.className = 'message-avatar';
+        avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
         messageDiv.appendChild(avatarDiv);
     }
     

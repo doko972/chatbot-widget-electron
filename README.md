@@ -2,13 +2,13 @@
 
 Widget de bureau Windows pour votre chatbot Laravel utilisant Electron.
 
-## 📋 Prérequis
+## Prérequis
 
 - Node.js 18+ installé
 - Votre application Laravel fonctionnelle
 - Token API généré depuis votre dashboard Laravel
 
-## 🚀 Installation
+## Installation
 
 ### 1. Installer les dépendances
 
@@ -164,10 +164,10 @@ npm run build-win
 
 L'installateur sera créé dans le dossier `dist/`.
 
-## ⚙️ Configuration du widget
+## Configuration du widget
 
 1. **Lancer le widget** : Double-cliquez sur l'application
-2. **Cliquer sur l'icône ⚙️** dans la barre de titre
+2. **Cliquer sur l'icône** dans la barre de titre
 3. **Renseigner** :
    - URL de l'API Laravel : `http://localhost:8000` (ou votre domaine en production)
    - Token API : récupérez-le depuis votre dashboard Laravel
@@ -228,11 +228,11 @@ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 Dans `main.js` :
 
 ```javascript
-const WINDOW_WIDTH = 380;  // Largeur
-const WINDOW_HEIGHT = 600; // Hauteur
+const WINDOW_WIDTH = 380;
+const WINDOW_HEIGHT = 600
 ```
 
-## 🐛 Dépannage
+## Dépannage
 
 ### Le widget ne se connecte pas
 
@@ -253,7 +253,7 @@ Créez le dossier `assets/` et ajoutez vos icônes :
 - Format : PNG (256x256) ou ICO
 - Nom : `icon.png` ou `icon.ico`
 
-## 📦 Structure du projet
+## Structure du projet
 
 ```
 chatbot-widget-electron/
@@ -268,7 +268,7 @@ chatbot-widget-electron/
     └── icon.ico
 ```
 
-## 🚢 Déploiement
+## Déploiement
 
 ### Distribuer l'application
 
@@ -283,11 +283,11 @@ Après `npm run build-win`, partagez :
 3. Implémentez le refresh automatique du token
 4. Ajoutez un système de mise à jour automatique (electron-updater)
 
-## 📄 Licence
+## Licence
 
 MIT
 
-## 👨‍💻 Auteur
+## Auteur
 
 Atelier Normand Du Web
 
