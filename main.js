@@ -62,28 +62,23 @@ function setupFullscreenHandlers() {
 // Création de la fenêtre
 // ============================================
 function createWindow() {
-    // 🖥️ Récupérer la taille de l'écran disponible
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-
-    // 📏 Taille de ta fenêtre (tu peux garder ta constante normalBounds)
     const winWidth = normalBounds.width;
     const winHeight = normalBounds.height;
-
-    // 📍 Calculer la position : en bas à droite avec 20px de marge
     const posX = width - winWidth - 20;
     const posY = height - winHeight - 20;
 
-    // 🔲 Créer la fenêtre
     mainWindow = new BrowserWindow({
         width: winWidth,
         height: winHeight,
         x: posX,
-        y: posY,
+        y: posY + 30, // 🪄 Position initiale légèrement plus basse (pour l’effet de glissement)
         frame: false,
         transparent: true,
         resizable: false,
         alwaysOnTop: true,
         skipTaskbar: true,
+        opacity: 0, // Démarre invisible
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: true,
@@ -91,17 +86,36 @@ function createWindow() {
         }
     });
 
-    // Charger le contenu
     mainWindow.loadFile('index.html');
 
-    // 🪄 Optionnel : forcer la fenêtre à rester dans le coin si l’écran change
+    // ✨ Animation d’apparition (fade + slide)
+    mainWindow.once('ready-to-show', () => {
+        let opacity = 0;
+        let offsetY = 30;
+
+        const fadeInterval = setInterval(() => {
+            opacity += 0.05;
+            offsetY -= 1;
+
+            mainWindow.setOpacity(opacity);
+            mainWindow.setPosition(posX, posY + offsetY);
+
+            if (opacity >= 1) {
+                mainWindow.setOpacity(1);
+                mainWindow.setPosition(posX, posY);
+                clearInterval(fadeInterval);
+            }
+        }, 20); // Animation fluide sur ~400ms
+    });
+
     screen.on('display-metrics-changed', () => {
         const { width, height } = screen.getPrimaryDisplay().workAreaSize;
         mainWindow.setPosition(width - winWidth - 20, height - winHeight - 20);
     });
 
-    console.log(`🚀 Fenêtre créée en bas à droite (${posX}, ${posY})`);
+    console.log(`🚀 Fenêtre animée en bas à droite (${posX}, ${posY})`);
 }
+
 
 // ============================================
 // Démarrage de l'application

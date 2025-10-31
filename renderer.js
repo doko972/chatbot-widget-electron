@@ -1,7 +1,3 @@
-// renderer.js - Adapté pour contextIsolation: true
-// NE PLUS utiliser require() ici, TOUT passe par window.electronAPI
-
-// Configuration et état
 let config = {
     apiUrl: localStorage.getItem('apiUrl') || 'https://chatbot.ateliernormandduweb.fr'
 };
