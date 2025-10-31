@@ -1,11 +1,15 @@
+// renderer.js - Adapté pour contextIsolation: true
+// NE PLUS utiliser require() ici, TOUT passe par window.electronAPI
+
 // Configuration et état
 let config = {
     apiUrl: localStorage.getItem('apiUrl') || 'https://chatbot.ateliernormandduweb.fr'
 };
 
 let isMinimized = true;
+let isFullscreen = false;
 
-// 🧠 AJOUT : Historique de conversation
+// 🧠 Historique de conversation
 let conversationHistory = [];
 
 // Éléments DOM
@@ -24,7 +28,8 @@ const elements = {
     typingIndicator: document.getElementById('typingIndicator'),
     clearHistoryBtn: document.getElementById('clearHistoryBtn'),
     minimizeBtn: document.getElementById('minimizeBtn'),
-    closeBtn: document.getElementById('closeBtn')
+    closeBtn: document.getElementById('closeBtn'),
+    toggleFullscreenBtn: document.getElementById('toggleFullscreenBtn')  // 🔥 NOUVEAU
 };
 
 // Initialisation
@@ -32,14 +37,86 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     setupEventListeners();
     checkInitialConnection();
+    setupFullscreenToggle();  // 🔥 NOUVEAU
 });
 
-// Charger les paramètres sauvegardés
+// ============================================
+// GESTION FULLSCREEN
+// ============================================
+
+function setupFullscreenToggle() {
+    if (!elements.toggleFullscreenBtn) {
+        console.warn('⚠️ Bouton toggleFullscreen non trouvé');
+        return;
+    }
+
+    elements.toggleFullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    // Raccourci F11
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F11') {
+            e.preventDefault();
+            toggleFullscreen();
+        }
+    });
+
+    console.log('✅ Toggle fullscreen configuré');
+}
+
+function toggleFullscreen() {
+    isFullscreen = !isFullscreen;
+
+    // 🔥 Utiliser window.electronAPI au lieu de require('electron')
+    if (window.electronAPI && window.electronAPI.toggleFullscreen) {
+        window.electronAPI.toggleFullscreen(isFullscreen);
+        updateFullscreenButton();
+        animateFullscreenTransition();
+
+        console.log(isFullscreen ? '📺 Mode plein écran' : '🪟 Mode normal');
+    } else {
+        console.error('❌ electronAPI.toggleFullscreen non disponible');
+    }
+}
+
+function updateFullscreenButton() {
+    if (!elements.toggleFullscreenBtn) return;
+
+    const icon = elements.toggleFullscreenBtn.querySelector('i');
+
+    if (isFullscreen) {
+        icon.className = 'fas fa-compress';
+        elements.toggleFullscreenBtn.title = 'Mode fenêtre (F11)';
+    } else {
+        icon.className = 'fas fa-expand';
+        elements.toggleFullscreenBtn.title = 'Plein écran (F11)';
+    }
+}
+
+function animateFullscreenTransition() {
+    const container = document.getElementById('chatContainer');
+    if (!container) return;
+
+    container.classList.add('transitioning');
+
+    if (isFullscreen) {
+        container.classList.add('fullscreen-mode');
+    } else {
+        container.classList.remove('fullscreen-mode');
+    }
+
+    setTimeout(() => {
+        container.classList.remove('transitioning');
+    }, 300);
+}
+
+// ============================================
+// RESTE DU CODE (inchangé)
+// ============================================
+
 function loadSettings() {
     elements.apiUrlInput.value = config.apiUrl;
 }
 
-// Configuration des événements
 function setupEventListeners() {
     // Toggle bouton flottant / chat
     elements.floatingButton.addEventListener('click', () => {
@@ -52,6 +129,7 @@ function setupEventListeners() {
     });
 
     elements.closeBtn.addEventListener('click', () => {
+        // 🔥 Utiliser window.electronAPI
         if (window.electronAPI && window.electronAPI.closeWindow) {
             window.electronAPI.closeWindow();
         } else {
@@ -88,53 +166,52 @@ function setupEventListeners() {
         elements.settingsPanel.classList.add('active');
     });
 
+    // Bouton nouvelle conversation
     if (elements.clearHistoryBtn) {
         elements.clearHistoryBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
 
-            if (confirm('...')) {
+            if (confirm('Voulez-vous vraiment démarrer une nouvelle conversation ?')) {
                 try {
                     clearHistory();
                     elements.messagesContainer.innerHTML = '';
-                    addMessage('Bonjour, comment puis-je vous aider ?', 'bot');
-                    console.log('✅ OK');
+                    addMessage('💭 Nouvelle conversation démarrée. Comment puis-je vous aider ?', 'bot');
+                    console.log('✅ Nouvelle conversation démarrée');
                 } catch (error) {
-                    console.error('❌ Erreur:', error);
-                    addMessage('⚠️ Erreur...', 'bot');
+                    console.error('❌ Erreur lors du reset:', error);
+                    addMessage('⚠️ Erreur lors du reset. Veuillez recharger l\'application.', 'bot');
                 }
             }
         });
     }
 }
 
-// Toggle entre mode réduit et déployé
 function toggleChat(minimize = false) {
     isMinimized = minimize;
 
     if (minimize) {
-        // Réduire vers le bouton
         elements.chatContainer.classList.add('hidden');
         elements.floatingButton.style.display = 'flex';
+        elements.floatingButton.style.left = 'auto';
+        elements.floatingButton.style.top = 'auto';
+        elements.floatingButton.style.right = '20px';
+        elements.floatingButton.style.bottom = '20px';
     } else {
-        // Déployer le chat
         elements.floatingButton.style.display = 'none';
         elements.chatContainer.classList.remove('hidden');
         elements.messageInput.focus();
     }
 }
 
-// Sauvegarder les paramètres
 function saveSettings() {
     config.apiUrl = elements.apiUrlInput.value.trim();
 
-    // Retirer le slash final si présent
     if (config.apiUrl.endsWith('/')) {
         config.apiUrl = config.apiUrl.slice(0, -1);
     }
 
     localStorage.setItem('apiUrl', config.apiUrl);
-
     showConnectionStatus('✅ Paramètres sauvegardés !', 'success');
 
     setTimeout(() => {
@@ -142,7 +219,6 @@ function saveSettings() {
     }, 1500);
 }
 
-// Tester la connexion
 async function testConnection() {
     if (!config.apiUrl) {
         showConnectionStatus('❌ Veuillez renseigner l\'URL', 'error');
@@ -162,7 +238,6 @@ async function testConnection() {
         });
 
         if (response.ok) {
-            const data = await response.json();
             showConnectionStatus('✅ Connexion réussie !', 'success');
         } else {
             throw new Error('Erreur de connexion');
@@ -176,7 +251,6 @@ async function testConnection() {
     }
 }
 
-// Vérifier la connexion au démarrage
 async function checkInitialConnection() {
     if (config.apiUrl) {
         try {
@@ -192,13 +266,11 @@ async function checkInitialConnection() {
     }
 }
 
-// Afficher le statut de connexion
 function showConnectionStatus(message, type) {
     elements.connectionStatus.textContent = message;
     elements.connectionStatus.className = `connection-status ${type}`;
 }
 
-// Envoyer un message
 async function sendMessage() {
     const message = elements.messageInput.value.trim();
 
@@ -210,24 +282,20 @@ async function sendMessage() {
         return;
     }
 
-    // Afficher le message utilisateur
     addMessage(message, 'user');
     elements.messageInput.value = '';
     elements.messageInput.style.height = 'auto';
 
-    // 🧠 AJOUT : Ajouter le message à l'historique
     conversationHistory.push({
         role: 'user',
         content: message
     });
 
-    // Désactiver l'envoi pendant le traitement
     elements.sendButton.disabled = true;
     elements.messageInput.disabled = true;
     showTypingIndicator(true);
 
     try {
-        // 🧠 MODIFICATION : Envoyer l'historique avec la question
         const response = await fetch(`${config.apiUrl}/api/chatbot/message`, {
             method: 'POST',
             headers: {
@@ -236,7 +304,7 @@ async function sendMessage() {
             },
             body: JSON.stringify({
                 question: message,
-                conversation_history: conversationHistory  // 🧠 AJOUT : Envoyer l'historique
+                conversation_history: conversationHistory
             })
         });
 
@@ -246,18 +314,14 @@ async function sendMessage() {
         }
 
         const data = await response.json();
-
-        // Afficher la réponse du bot
         const botResponse = data.response || data.answer || data.message;
         addMessage(botResponse, 'bot');
 
-        // 🧠 AJOUT : Ajouter la réponse à l'historique
         conversationHistory.push({
             role: 'assistant',
             content: botResponse
         });
 
-        // 🧠 AJOUT : Limiter l'historique à 80 messages (40 échanges)
         if (conversationHistory.length > 160) {
             conversationHistory = conversationHistory.slice(-160);
         }
@@ -273,7 +337,6 @@ async function sendMessage() {
     }
 }
 
-// Ajouter un message dans la conversation
 function addMessage(text, type) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}-message`;
@@ -302,11 +365,9 @@ function addMessage(text, type) {
     messageDiv.appendChild(contentDiv);
     elements.messagesContainer.appendChild(messageDiv);
 
-    // Scroll vers le bas
     elements.messagesContainer.scrollTop = elements.messagesContainer.scrollHeight;
 }
 
-// Afficher/masquer l'indicateur de frappe
 function showTypingIndicator(show) {
     if (show) {
         elements.typingIndicator.classList.add('active');
@@ -316,23 +377,30 @@ function showTypingIndicator(show) {
     }
 }
 
-// 🧠 AJOUT : Fonction pour effacer l'historique (optionnel - pour debug)
 function clearHistory() {
     conversationHistory = [];
     console.log('🗑️ Historique effacé');
 }
 
-// 🧠 AJOUT : Fonction pour voir l'historique (optionnel - pour debug)
 function showHistory() {
     console.log('📜 Historique de conversation:', conversationHistory);
+    console.log(`📊 Nombre total de messages: ${conversationHistory.length}`);
+    console.log(`🔢 Nombre d'échanges: ${conversationHistory.length / 2}`);
     return conversationHistory;
 }
 
-// 🧠 AJOUT : Exposer les fonctions de debug (optionnel)
+// Exposer pour debug
 window.jarvisDebug = {
     clearHistory: clearHistory,
     showHistory: showHistory,
-    getHistoryLength: () => conversationHistory.length
+    getHistoryLength: () => conversationHistory.length,
+    getExchangeCount: () => Math.floor(conversationHistory.length / 2)
+};
+
+window.jarvisFullscreen = {
+    toggle: toggleFullscreen,
+    isFullscreen: () => isFullscreen,
+    getSize: () => isFullscreen ? 'fullscreen' : 'normal'
 };
 
 // Gestion des erreurs globales
@@ -344,5 +412,7 @@ window.addEventListener('unhandledrejection', (event) => {
     console.error('Promise non gérée:', event.reason);
 });
 
-console.log('🤖 Jarvis chargé avec mémoire conversationnelle !');
-console.log('💡 Debug: Tapez window.jarvisDebug.showHistory() dans la console');
+console.log('🤖 Jarvis chargé avec mémoire conversationnelle et fullscreen !');
+console.log('💾 Capacité: 80 échanges (160 messages)');
+console.log('💡 Debug: window.jarvisDebug.showHistory()');
+console.log('💡 Fullscreen: window.jarvisFullscreen.toggle()');

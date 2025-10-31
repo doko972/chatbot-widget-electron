@@ -23,8 +23,10 @@
     <!-- Mode déployé : Chatbot complet -->
     <div id="chatContainer" class="chat-container hidden">
       <!-- Header -->
+      <!-- Header avec zone de déplacement -->
       <div class="chat-header">
-        <div class="header-left">
+        <!-- 🎯 ZONE DÉPLAÇABLE : Ajoutez la classe "drag-region" ici -->
+        <div class="header-left drag-region">
           <div class="header-icon-container">
             <i class="fas fa-robot"></i>
           </div>
@@ -36,9 +38,11 @@
             </span>
           </div>
         </div>
+
+        <!-- 🎯 BOUTONS CLIQUABLES : Restent interactifs -->
         <div class="header-actions">
-          <button id="clearHistoryBtn" title="Nouvelle conversation">
-            <i class="fas fa-redo"></i>
+          <button id="toggleFullscreenBtn" title="Plein écran (F11)">
+            <i class="fas fa-expand"></i>
           </button>
           <button id="minimizeBtn" class="icon-btn" title="Réduire">
             <i class="fas fa-minus"></i>
