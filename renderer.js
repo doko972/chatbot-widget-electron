@@ -11,6 +11,7 @@ let conversationHistory = [];
 // Éléments DOM
 const elements = {
     floatingButton: document.getElementById('floatingButton'),
+    settingsBtn: document.getElementById('settingsBtn'),
     chatContainer: document.getElementById('chatContainer'),
     settingsPanel: document.getElementById('settingsPanel'),
     closeSettings: document.getElementById('closeSettings'),
@@ -25,7 +26,8 @@ const elements = {
     clearHistoryBtn: document.getElementById('clearHistoryBtn'),
     minimizeBtn: document.getElementById('minimizeBtn'),
     closeBtn: document.getElementById('closeBtn'),
-    toggleFullscreenBtn: document.getElementById('toggleFullscreenBtn')  // 🔥 NOUVEAU
+    toggleFullscreenBtn: document.getElementById('toggleFullscreenBtn'),
+    themeToggle: document.getElementById('themeToggle')
 };
 
 // Initialisation
@@ -33,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     setupEventListeners();
     checkInitialConnection();
-    setupFullscreenToggle();  // 🔥 NOUVEAU
+    setupFullscreenToggle();
+    setupKeyboardShortcuts();
 });
 
 // ============================================
@@ -61,8 +64,6 @@ function setupFullscreenToggle() {
 
 function toggleFullscreen() {
     isFullscreen = !isFullscreen;
-
-    // 🔥 Utiliser window.electronAPI au lieu de require('electron')
     if (window.electronAPI && window.electronAPI.toggleFullscreen) {
         window.electronAPI.toggleFullscreen(isFullscreen);
         updateFullscreenButton();
@@ -110,57 +111,79 @@ function animateFullscreenTransition() {
 // ============================================
 
 function loadSettings() {
-    elements.apiUrlInput.value = config.apiUrl;
+    if (elements.apiUrlInput) {
+        elements.apiUrlInput.value = config.apiUrl;
+    }
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+
+    if (elements.themeToggle) {
+        elements.themeToggle.checked = (savedTheme === 'light');
+    }
 }
 
 function setupEventListeners() {
-    // Toggle bouton flottant / chat
-    elements.floatingButton.addEventListener('click', () => {
-        toggleChat(false);
-    });
+    if (elements.floatingButton) {
+        elements.floatingButton.addEventListener('click', () => {
+            toggleChat(false);
+        });
+    }
 
-    // Boutons header
-    elements.minimizeBtn.addEventListener('click', () => {
-        toggleChat(true);
-    });
+    if (elements.settingsBtn) {
+        elements.settingsBtn.addEventListener('click', () => {
+            elements.settingsPanel.classList.toggle('active');
+        });
+    }
+    if (elements.minimizeBtn) {
+        elements.minimizeBtn.addEventListener('click', () => {
+            toggleChat(true);
+        });
+    }
 
-    elements.closeBtn.addEventListener('click', () => {
-        // 🔥 Utiliser window.electronAPI
-        if (window.electronAPI && window.electronAPI.closeWindow) {
-            window.electronAPI.closeWindow();
-        } else {
-            window.close();
-        }
-    });
+    if (elements.closeBtn) {
+        elements.closeBtn.addEventListener('click', () => {
+            if (window.electronAPI && window.electronAPI.closeWindow) {
+                window.electronAPI.closeWindow();
+            } else {
+                window.close();
+            }
+        });
+    }
+    if (elements.closeSettings) {
+        elements.closeSettings.addEventListener('click', () => {
+            elements.settingsPanel.classList.remove('active');
+        });
+    }
 
-    // Settings
-    elements.closeSettings.addEventListener('click', () => {
-        elements.settingsPanel.classList.remove('active');
-    });
+    if (elements.saveSettingsBtn) {
+        elements.saveSettingsBtn.addEventListener('click', saveSettings);
+    }
 
-    elements.saveSettingsBtn.addEventListener('click', saveSettings);
-    elements.testConnectionBtn.addEventListener('click', testConnection);
+    if (elements.testConnectionBtn) {
+        elements.testConnectionBtn.addEventListener('click', testConnection);
+    }
+    if (elements.sendButton) {
+        elements.sendButton.addEventListener('click', sendMessage);
+    }
 
-    // Chat
-    elements.sendButton.addEventListener('click', sendMessage);
-    elements.messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
-
-    // Auto-resize textarea
-    elements.messageInput.addEventListener('input', () => {
-        elements.messageInput.style.height = 'auto';
-        elements.messageInput.style.height = Math.min(elements.messageInput.scrollHeight, 120) + 'px';
-    });
-
-    // Double-clic sur le bouton = paramètres
-    elements.floatingButton.addEventListener('dblclick', (e) => {
-        e.stopPropagation();
-        elements.settingsPanel.classList.add('active');
-    });
+    if (elements.messageInput) {
+        elements.messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        elements.messageInput.addEventListener('input', () => {
+            elements.messageInput.style.height = 'auto';
+            elements.messageInput.style.height = Math.min(elements.messageInput.scrollHeight, 120) + 'px';
+        });
+    }
+    if (elements.floatingButton) {
+        elements.floatingButton.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            elements.settingsPanel.classList.add('active');
+        });
+    }
 
     // Bouton nouvelle conversation
     if (elements.clearHistoryBtn) {
@@ -174,6 +197,12 @@ function setupEventListeners() {
                     elements.messagesContainer.innerHTML = '';
                     addMessage('💭 Nouvelle conversation démarrée. Comment puis-je vous aider ?', 'bot');
                     console.log('✅ Nouvelle conversation démarrée');
+
+                    setTimeout(() => {
+                        if (elements.messageInput) {
+                            elements.messageInput.focus();
+                        }
+                    }, 100);
                 } catch (error) {
                     console.error('❌ Erreur lors du reset:', error);
                     addMessage('⚠️ Erreur lors du reset. Veuillez recharger l\'application.', 'bot');
@@ -181,6 +210,34 @@ function setupEventListeners() {
             }
         });
     }
+
+    // 🔥 Toggle thème
+    if (elements.themeToggle) {
+        elements.themeToggle.addEventListener('change', (e) => {
+            const theme = e.target.checked ? 'light' : 'dark';
+            applyTheme(theme);
+            localStorage.setItem('theme', theme);
+            console.log('🎨 Thème changé:', theme);
+        });
+    }
+
+    // Fermer le panneau d'aide
+    const closeHelpBtn = document.getElementById('closeHelp');
+    if (closeHelpBtn) {
+        closeHelpBtn.addEventListener('click', () => {
+            toggleHelpPanel();
+        });
+    }
+
+    // Fermer l'aide avec clic sur l'overlay
+    const helpOverlay = document.querySelector('.help-overlay');
+    if (helpOverlay) {
+        helpOverlay.addEventListener('click', () => {
+            toggleHelpPanel();
+        });
+    }
+
+    console.log('✅ Event listeners configurés');
 }
 
 function toggleChat(minimize = false) {
@@ -407,6 +464,189 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
     console.error('Promise non gérée:', event.reason);
 });
+
+// ============================================
+// GESTION DU THÈME
+// ============================================
+
+function applyTheme(theme) {
+    const root = document.documentElement;
+
+    if (theme === 'light') {
+        root.classList.add('light-theme');
+        console.log('☀️ Thème clair activé');
+    } else {
+        root.classList.remove('light-theme');
+        console.log('🌙 Thème sombre activé');
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.classList.contains('light-theme') ? 'light' : 'dark';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    applyTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    // Mettre à jour le toggle
+    if (elements.themeToggle) {
+        elements.themeToggle.checked = (newTheme === 'light');
+    }
+
+    return newTheme;
+}
+
+// Exposer pour debug
+window.jarvisTheme = {
+    toggle: toggleTheme,
+    apply: applyTheme,
+    getCurrent: () => document.documentElement.classList.contains('light-theme') ? 'light' : 'dark'
+};
+
+// ============================================
+// GESTION DES RACCOURCIS CLAVIER
+// ============================================
+
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        const isTyping = (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
+
+        if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            if (confirm('Démarrer une nouvelle conversation ?')) {
+                clearHistory();
+                if (elements.messagesContainer) {
+                    elements.messagesContainer.innerHTML = '';
+                }
+                addMessage('💭 Nouvelle conversation démarrée. Comment puis-je vous aider ?', 'bot');
+                showToast('🔄 Nouvelle conversation', 'success');
+                console.log('⌨️ Raccourci: Nouvelle conversation');
+
+                setTimeout(() => {
+                    if (elements.messageInput) {
+                        elements.messageInput.focus();
+                    }
+                }, 100);
+            }
+            return;
+        }
+
+        // Ctrl+M : Minimiser/Afficher
+        if (e.ctrlKey && e.key === 'm') {
+            e.preventDefault();
+            toggleChat(!isMinimized);
+            showToast(isMinimized ? '📦 Chat minimisé' : '💬 Chat ouvert', 'info');
+            console.log('⌨️ Raccourci: Toggle minimize');
+            return;
+        }
+
+        // Esc : Fermer le chat (si ouvert)
+        if (e.key === 'Escape') {
+            // Si le panneau d'aide est ouvert, le fermer
+            const helpPanel = document.getElementById('helpPanel');
+            if (helpPanel && helpPanel.classList.contains('active')) {
+                e.preventDefault();
+                toggleHelpPanel();
+                return;
+            }
+
+            if (!isMinimized && !isTyping) {
+                e.preventDefault();
+                toggleChat(true);
+                showToast('📦 Chat minimisé', 'info');
+                console.log('⌨️ Raccourci: Escape');
+                return;
+            }
+            // Si le panneau settings est ouvert, le fermer
+            if (elements.settingsPanel && elements.settingsPanel.classList.contains('active')) {
+                e.preventDefault();
+                elements.settingsPanel.classList.remove('active');
+                console.log('⌨️ Raccourci: Fermer settings');
+                return;
+            }
+        }
+
+        // Ctrl+, : Ouvrir les paramètres
+        if (e.ctrlKey && e.key === ',') {
+            e.preventDefault();
+            if (elements.settingsPanel) {
+                elements.settingsPanel.classList.toggle('active');
+                showToast('⚙️ Paramètres', 'info');
+                console.log('⌨️ Raccourci: Paramètres');
+            }
+            return;
+        }
+
+        // Ctrl+/ : Afficher l'aide
+        if (e.ctrlKey && e.key === '/') {
+            e.preventDefault();
+            toggleHelpPanel();
+            console.log('⌨️ Raccourci: Aide');
+            return;
+        }
+
+        // Ctrl+Enter : Envoyer le message
+        if (e.ctrlKey && e.key === 'Enter' && isTyping) {
+            e.preventDefault();
+            sendMessage();
+            console.log('⌨️ Raccourci: Envoyer message');
+            return;
+        }
+    });
+
+    console.log('✅ Raccourcis clavier configurés');
+}
+
+// Fonction pour afficher un toast (notification temporaire)
+function showToast(message, type = 'info') {
+    // Créer le toast s'il n'existe pas
+    let toast = document.getElementById('toast-notification');
+
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-notification';
+        toast.className = 'toast-notification';
+        document.body.appendChild(toast);
+    }
+
+    // Définir le contenu et le type
+    toast.textContent = message;
+    toast.className = `toast-notification toast-${type}`;
+
+    // Afficher
+    setTimeout(() => toast.classList.add('show'), 10);
+
+    // Masquer après 2 secondes
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2000);
+}
+
+// Fonction pour afficher/masquer le panneau d'aide
+function toggleHelpPanel() {
+    const helpPanel = document.getElementById('helpPanel');
+
+    if (!helpPanel) {
+        console.error('❌ Panneau d\'aide non trouvé');
+        return;
+    }
+
+    const isActive = helpPanel.classList.contains('active');
+
+    if (isActive) {
+        helpPanel.classList.remove('active');
+        console.log('📚 Aide fermée');
+    } else {
+        helpPanel.classList.add('active');
+        console.log('📚 Aide ouverte');
+    }
+}
+
+// Exposer pour debug
+window.jarvisShortcuts = {
+    showToast: showToast,
+    toggleHelp: toggleHelpPanel
+};
 
 console.log('🤖 Jarvis chargé avec mémoire conversationnelle et fullscreen !');
 console.log('💾 Capacité: 80 échanges (160 messages)');
