@@ -8,6 +8,14 @@ Widget de bureau Windows pour votre chatbot Laravel utilisant Electron.
 - Votre application Laravel fonctionnelle
 - Token API généré depuis votre dashboard Laravel
 
+## Récapitulatif du stack actuelle :
+
+- main.js : Process principal Electron avec gestion fullscreen
+- preload.js : Bridge sécurisé entre main et renderer
+- renderer.js : Logique frontend (événements, API calls)
+- index.html : Structure de l'interface
+- styles.css : Design glassmorphism avec variables CSS
+
 ## Installation
 
 ### 1. Installer les dépendances
@@ -294,3 +302,5 @@ Atelier Normand Du Web
 ---
 
 **Besoin d'aide ?** Consultez la documentation Laravel et Electron.
+
+
