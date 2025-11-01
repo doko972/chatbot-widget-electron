@@ -1,14 +1,8 @@
-// Exemple de configuration
-// Ce fichier n'est pas utilisé actuellement mais peut servir de référence
-
 const CONFIG_EXAMPLE = {
-    // URL de votre API Laravel
     apiUrl: 'http://localhost:8000',
     
-    // Token API (à générer depuis le dashboard Laravel)
     apiToken: 'votre_token_ici',
     
-    // Options de la fenêtre
     window: {
         width: 380,
         height: 600,
@@ -23,5 +17,3 @@ const CONFIG_EXAMPLE = {
     }
 };
 
-// Les paramètres sont actuellement stockés dans localStorage
-// pour plus de sécurité et de flexibilité

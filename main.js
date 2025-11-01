@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen } = require('electron');  // 🔥 Ajout de 'screen'
+const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 
 let mainWindow;
@@ -72,17 +72,17 @@ function createWindow() {
         width: winWidth,
         height: winHeight,
         x: posX,
-        y: posY + 30, // 🪄 Position initiale légèrement plus basse (pour l’effet de glissement)
+        y: posY + 30,
         frame: false,
         transparent: true,
         resizable: false,
         alwaysOnTop: true,
         skipTaskbar: true,
-        opacity: 0, // Démarre invisible
+        opacity: 0,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
-            nodeIntegration: false,  // 🔥 Changé à false pour la sécurité
+            nodeIntegration: false,
             enableRemoteModule: false
         }
     });
@@ -124,7 +124,7 @@ function createWindow() {
 app.whenReady().then(() => {
     // 📝 Logs de démarrage
     console.log('========================================');
-    console.log('🤖 JARVIS - HR TÉLÉCOMS');
+    console.log('🤖 JARVIS');
     console.log('========================================');
     console.log('📁 App Path:', app.getAppPath());
     console.log('💻 Electron:', process.versions.electron);
