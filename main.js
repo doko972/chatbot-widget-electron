@@ -10,26 +10,26 @@ let normalBounds = { width: 480, height: 750 };
 function setupFullscreenHandlers() {
     ipcMain.on('toggle-fullscreen', (event, isFullscreen) => {
         if (!mainWindow) return;
-        
+
         if (isFullscreen) {
             // Sauvegarder taille actuelle
             normalBounds = mainWindow.getBounds();
-            
+
             // Obtenir taille écran
             const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-            
+
             // Appliquer plein écran
             mainWindow.setBounds({ x: 0, y: 0, width, height }, true);
-            
+
             console.log('📺 Plein écran activé:', width + 'x' + height);
         } else {
             // Restaurer taille normale
             mainWindow.setBounds(normalBounds, true);
-            
+
             console.log('🪟 Mode normal:', normalBounds.width + 'x' + normalBounds.height);
         }
     });
-    
+
     // IPC : Fermer la fenêtre
     ipcMain.on('close-window', () => {
         console.log('🔴 Fermeture demandée');
@@ -37,7 +37,7 @@ function setupFullscreenHandlers() {
             mainWindow.close();
         }
     });
-    
+
     // IPC : Minimiser la fenêtre
     ipcMain.on('minimize-window', () => {
         console.log('➖ Minimisation demandée');
@@ -45,7 +45,7 @@ function setupFullscreenHandlers() {
             mainWindow.minimize();
         }
     });
-    
+
     // IPC : Maximiser/Restaurer
     ipcMain.on('maximize-window', () => {
         if (mainWindow) {
@@ -80,9 +80,10 @@ function createWindow() {
         skipTaskbar: true,
         opacity: 0, // Démarre invisible
         webPreferences: {
-            nodeIntegration: true,
+            preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js')
+            nodeIntegration: false,  // 🔥 Changé à false pour la sécurité
+            enableRemoteModule: false
         }
     });
 
@@ -131,13 +132,13 @@ app.whenReady().then(() => {
     console.log('⚙️  Node:', process.versions.node);
     console.log('🖥️  Platform:', process.platform);
     console.log('========================================');
-    
+
     // Configurer les handlers IPC (UNE SEULE FOIS)
     setupFullscreenHandlers();
-    
+
     // Créer la fenêtre
     createWindow();
-    
+
     // macOS : Recréer fenêtre si cliqué dans le dock
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

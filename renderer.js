@@ -11,6 +11,7 @@ let conversationHistory = [];
 // Éléments DOM
 const elements = {
     floatingButton: document.getElementById('floatingButton'),
+    settingsBtn: document.getElementById('settingsBtn'),
     chatContainer: document.getElementById('chatContainer'),
     settingsPanel: document.getElementById('settingsPanel'),
     closeSettings: document.getElementById('closeSettings'),
@@ -25,7 +26,8 @@ const elements = {
     clearHistoryBtn: document.getElementById('clearHistoryBtn'),
     minimizeBtn: document.getElementById('minimizeBtn'),
     closeBtn: document.getElementById('closeBtn'),
-    toggleFullscreenBtn: document.getElementById('toggleFullscreenBtn')  // 🔥 NOUVEAU
+    toggleFullscreenBtn: document.getElementById('toggleFullscreenBtn'),
+    themeToggle: document.getElementById('themeToggle')
 };
 
 // Initialisation
@@ -110,57 +112,92 @@ function animateFullscreenTransition() {
 // ============================================
 
 function loadSettings() {
-    elements.apiUrlInput.value = config.apiUrl;
+    // Vérifier que les éléments existent avant de les manipuler
+    if (elements.apiUrlInput) {
+        elements.apiUrlInput.value = config.apiUrl;
+    }
+
+    // 🔥 Charger le thème sauvegardé
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+
+    if (elements.themeToggle) {
+        elements.themeToggle.checked = (savedTheme === 'light');
+    }
 }
 
 function setupEventListeners() {
     // Toggle bouton flottant / chat
-    elements.floatingButton.addEventListener('click', () => {
-        toggleChat(false);
-    });
+    if (elements.floatingButton) {
+        elements.floatingButton.addEventListener('click', () => {
+            toggleChat(false);
+        });
+    }
 
+if (elements.settingsBtn) {
+    elements.settingsBtn.addEventListener('click', () => {
+        elements.settingsPanel.classList.toggle('active');
+    });
+}
     // Boutons header
-    elements.minimizeBtn.addEventListener('click', () => {
-        toggleChat(true);
-    });
+    if (elements.minimizeBtn) {
+        elements.minimizeBtn.addEventListener('click', () => {
+            toggleChat(true);
+        });
+    }
 
-    elements.closeBtn.addEventListener('click', () => {
-        // 🔥 Utiliser window.electronAPI
-        if (window.electronAPI && window.electronAPI.closeWindow) {
-            window.electronAPI.closeWindow();
-        } else {
-            window.close();
-        }
-    });
+    if (elements.closeBtn) {
+        elements.closeBtn.addEventListener('click', () => {
+            if (window.electronAPI && window.electronAPI.closeWindow) {
+                window.electronAPI.closeWindow();
+            } else {
+                window.close();
+            }
+        });
+    }
 
     // Settings
-    elements.closeSettings.addEventListener('click', () => {
-        elements.settingsPanel.classList.remove('active');
-    });
+    if (elements.closeSettings) {
+        elements.closeSettings.addEventListener('click', () => {
+            elements.settingsPanel.classList.remove('active');
+        });
+    }
 
-    elements.saveSettingsBtn.addEventListener('click', saveSettings);
-    elements.testConnectionBtn.addEventListener('click', testConnection);
+    if (elements.saveSettingsBtn) {
+        elements.saveSettingsBtn.addEventListener('click', saveSettings);
+    }
+
+    if (elements.testConnectionBtn) {
+        elements.testConnectionBtn.addEventListener('click', testConnection);
+    }
 
     // Chat
-    elements.sendButton.addEventListener('click', sendMessage);
-    elements.messageInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
+    if (elements.sendButton) {
+        elements.sendButton.addEventListener('click', sendMessage);
+    }
 
-    // Auto-resize textarea
-    elements.messageInput.addEventListener('input', () => {
-        elements.messageInput.style.height = 'auto';
-        elements.messageInput.style.height = Math.min(elements.messageInput.scrollHeight, 120) + 'px';
-    });
+    if (elements.messageInput) {
+        elements.messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Auto-resize textarea
+        elements.messageInput.addEventListener('input', () => {
+            elements.messageInput.style.height = 'auto';
+            elements.messageInput.style.height = Math.min(elements.messageInput.scrollHeight, 120) + 'px';
+        });
+    }
 
     // Double-clic sur le bouton = paramètres
-    elements.floatingButton.addEventListener('dblclick', (e) => {
-        e.stopPropagation();
-        elements.settingsPanel.classList.add('active');
-    });
+    if (elements.floatingButton) {
+        elements.floatingButton.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            elements.settingsPanel.classList.add('active');
+        });
+    }
 
     // Bouton nouvelle conversation
     if (elements.clearHistoryBtn) {
@@ -181,6 +218,18 @@ function setupEventListeners() {
             }
         });
     }
+
+    // 🔥 Toggle thème
+    if (elements.themeToggle) {
+        elements.themeToggle.addEventListener('change', (e) => {
+            const theme = e.target.checked ? 'light' : 'dark';
+            applyTheme(theme);
+            localStorage.setItem('theme', theme);
+            console.log('🎨 Thème changé:', theme);
+        });
+    }
+
+    console.log('✅ Event listeners configurés');
 }
 
 function toggleChat(minimize = false) {
@@ -407,6 +456,44 @@ window.addEventListener('error', (event) => {
 window.addEventListener('unhandledrejection', (event) => {
     console.error('Promise non gérée:', event.reason);
 });
+
+// ============================================
+// GESTION DU THÈME
+// ============================================
+
+function applyTheme(theme) {
+    const root = document.documentElement;
+
+    if (theme === 'light') {
+        root.classList.add('light-theme');
+        console.log('☀️ Thème clair activé');
+    } else {
+        root.classList.remove('light-theme');
+        console.log('🌙 Thème sombre activé');
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.classList.contains('light-theme') ? 'light' : 'dark';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    applyTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    // Mettre à jour le toggle
+    if (elements.themeToggle) {
+        elements.themeToggle.checked = (newTheme === 'light');
+    }
+
+    return newTheme;
+}
+
+// Exposer pour debug
+window.jarvisTheme = {
+    toggle: toggleTheme,
+    apply: applyTheme,
+    getCurrent: () => document.documentElement.classList.contains('light-theme') ? 'light' : 'dark'
+};
 
 console.log('🤖 Jarvis chargé avec mémoire conversationnelle et fullscreen !');
 console.log('💾 Capacité: 80 échanges (160 messages)');
